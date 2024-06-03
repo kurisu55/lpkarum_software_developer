@@ -1,15 +1,27 @@
 <!-- Code PHP di HTML -->
 <?php
-session_start();
+include_once('config/conn_db.php');
+
 if (isset($_POST['insertData'])) {
-    if (
-        $_POST['name'] == '' || $_POST['tanggalLahir'] == '' || $_POST['tempatLahir'] == '' || $_POST['alamat'] == ''
-        || $_POST['sesuaiKTP'] == '' || $_POST['pendidikanTerakhir'] == '' || $_POST['pekerjaan'] == ''
-    ) {
-        echo "<script>alert('isi semua');</script>";
+    // Convert fragmented date HTML
+    $date = explode('-', $_POST['tanggalLahir']);
+    $dateFIX = array($date[2], $date[1], $date[0]);
+
+    // Get Id as generate No. Kependudukan
+    $resultID = mysqli_query($connect, "SELECT max(Id) AS ID from orang");
+    $rowID = mysqli_fetch_assoc($resultID);
+    $maxID = $rowID['ID'];
+    $INCmaxID = ++$maxID;
+    $_POST['userId'] = (int)(str_pad($INCmaxID, 1, '0', STR_PAD_LEFT) . $date[2] . $date[1] . $date[0]);
+
+    if ($_POST['name'] == '' || $_POST['tanggalLahir'] == '' || $_POST['tempatLahir'] == '' || $_POST['alamat'] == '' || $_POST['sesuaiKTP'] == '' || $_POST['pendidikanTerakhir'] == '' || $_POST['pekerjaan'] == '') {
+        echo "<script>alert('Data harus diisi semua');</script>";
+    } elseif (inputForm($_POST) > 0) {
+        echo "<script>alert('berhasil!')</script>";
     }
 }
 
+$resultWholeData = mysqli_query($connect, "SELECT * FROM orang");
 ?>
 
 <!DOCTYPE html>
@@ -43,17 +55,6 @@ if (isset($_POST['insertData'])) {
     <nav class="navbar navbar-expand-lg bg-secondary text-uppercase fixed-top" id="mainNav">
         <div class="container">
             <a class="navbar-brand" href="index.php">Landing Page</a>
-            <button class="navbar-toggler text-uppercase font-weight-bold bg-primary text-white rounded" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
-                Menu
-                <i class="fas fa-bars"></i>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarResponsive">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="index.php#portfolio">Portfolio</a></li>
-                    <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="index.php#about">About</a></li>
-                    <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="index.php#contact">Contact</a></li>
-                </ul>
-            </div>
         </div>
     </nav>
     <section class="page-section">
@@ -61,7 +62,7 @@ if (isset($_POST['insertData'])) {
             <div class="row">
                 <div class="border border-secondary col col-5 me-3">
                     <h1 class="text-center mt-2">FORM PENGISIAN</h1>
-                    <form action="" method="post" id="formInput">
+                    <form action="" method="post">
                         <div class="col-5 ms-3">
                             <label for="name" class="col-form-label">Nama : </label>
                             <input type="text" name="name" class="form-control" id="name" placeholder="Input nama!">
@@ -103,40 +104,25 @@ if (isset($_POST['insertData'])) {
                                 <label for="pekerjaan" class="col-form-label">Pekerjaan : </label>
                                 <select name="pekerjaan" class="form-select" id="pekerjaan">
                                     <option selected>...</option>
-                                    <option value="Tidak">Tidak Bekerja</option>
-                                    <option value="pegawaiSwasta">Pegawai Swasta</option>
-                                    <option value="pegawaiNegeri">Pegawai Negeri</option>
+                                    <option value="tidak">Tidak Bekerja</option>
+                                    <option value="pegawai_swasta">Pegawai Swasta</option>
+                                    <option value="pegawai_negeri">Pegawai Negeri</option>
                                     <option value="wirausaha">Wirausaha</option>
                                     <option value="pengusaha">Pengusaha</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="row my-3 ms-2">
-                            <div class="">
-                                <button type="submit" class="btn btn-outline-success center col" name="insertData">Submit</button>
-                            </div>
-                            <div>
-
-                            </div>
+                        <div class="my-3 ms-3">
+                            <button type="submit" class="btn btn-outline-success center col" name="insertData">Submit</button>
                         </div>
                     </form>
                 </div>
                 <div class="border-start border-secondary col col-6 ms-3">
                     <h1 class="text-center mt-2">FORM EDIT</h1>
-                    <form action="" method="post">
-                        <div class="col-8 ms-3">
-                            <label for="userId" class="col-form-label">Pencarian Data : </label>
-                            <input type="text" name="userId" class="form-control" id="userId" placeholder="Berdasarkan nomor kependudukan!">
-                        </div>
-                        <div class="my-2 ms-3">
-                            <button type="button" class="btn btn-outline-success center col">Submit</button>
-                        </div>
-                    </form>
-                    <table class="table table-sm">
+                    <table class="table table-sm mt-5">
                         <thead>
                             <td>No. Kependudukan</td>
                             <td>Nama</td>
-                            <td>Alamat</td>
                             <td>Tanggal Lahir</td>
                             <td>Tempat Lahir</td>
                             <td>Alamat</td>
@@ -145,10 +131,22 @@ if (isset($_POST['insertData'])) {
                             <td>Pekerjaan</td>
                             <td>Aksi</td>
                         </thead>
-                        <tbody>
-                            <td></td>
-                            <td></td>
-                        </tbody>
+                        <?php while ($row = mysqli_fetch_assoc($resultWholeData)) : ?>
+                            <tbody>
+                                <td><?= $row['userId']; ?></td>
+                                <td><?= $row['namaLengkap']; ?></td>
+                                <td><?= $row['tanggalLahir']; ?></td>
+                                <td><?= $row['tempatLahir']; ?></td>
+                                <td><?= $row['alamat']; ?></td>
+                                <td><?= $row['sesuaiKTP']; ?></td>
+                                <td><?= $row['pendidikanTerakhir']; ?></td>
+                                <td><?= $row['pekerjaan']; ?></td>
+                                <td>
+                                    <a href="dataAksi/edit.php?userId=<?= $row['userId']; ?>" class="badge alert-warning">Edit</a>
+                                    <a href="dataAksi/delete.php?<?= $row['userId']; ?>" onclick="return confirm('Konfirmasi hapus?');" class="badge alert-danger">Delete</a>
+                                </td>
+                            </tbody>
+                        <?php endwhile; ?>
                     </table>
                 </div>
             </div>
@@ -192,12 +190,13 @@ if (isset($_POST['insertData'])) {
         <div class="container"><small>Copyright &copy; Kurisu 2024</small></div>
     </div>
 
-    <script>
+    <!-- <script>
         let formInput = document.getElementById('formInput');
 
         formInput.addEventListener('submit', function() {
-            // event.preventDefault();
+            event.preventDefault();
 
+            // Get Value from FORM INSERT
             const name = document.getElementById('name').value;
             const tanggalLahir = document.getElementById('tanggalLahir').value;
             const tempatLahir = document.getElementById('tempatLahir').value;
@@ -207,12 +206,12 @@ if (isset($_POST['insertData'])) {
             const pekerjaan = document.getElementById('pekerjaan').value;
 
             if (name == '' || tanggalLahir == '' || tempatLahir == '' || alamat == '' || sesuaiKTP == '' || pendidikanTerakhir == '' || pekerjaan == '') {
-                alert('harus disi ya!');
+                alert('Input harus diisi semua!');
             } else {
-                alert('berhasil');
+                alert('Berhasil! Data telah dimasukkan.');
             }
         })
-    </script>
+    </script> -->
     <!-- Bootstrap core JS-->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Core theme JS-->
