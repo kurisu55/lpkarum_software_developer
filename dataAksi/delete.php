@@ -4,7 +4,7 @@ include_once('../config/conn_db.php');
 $id = $_GET["userId"];
 
 // Aksi hapus
-if (hapusSoal($id) > 0) {
+if (deleteData($id) > 0) {
 
     echo "<script>
     alert('Data berhasil dihapus!');
