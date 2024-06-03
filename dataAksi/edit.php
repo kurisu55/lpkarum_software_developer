@@ -2,23 +2,12 @@
 <?php
 include_once('../config/conn_db.php');
 
-if (isset($_POST['insertData'])) {
-    // Convert fragmented date HTML
-    $date = explode('-', $_POST['tanggalLahir']);
-    $dateFIX = array($date[2], $date[1], $date[0]);
+// Get userId
+$id = $_GET['userId'];
+$dataSelect = mysqli_query($connect, "SELECT * FROM orang WHERE userId=$id");
+$result = mysqli_fetch_assoc($dataSelect);
 
-    // Get Id as generate No. Kependudukan
-    $resultID = mysqli_query($connect, "SELECT max(Id) AS ID from orang");
-    $rowID = mysqli_fetch_assoc($resultID);
-    $maxID = $rowID['ID'];
-    $INCmaxID = ++$maxID;
-    $_POST['userId'] = (int)(str_pad($INCmaxID, 1, '0', STR_PAD_LEFT) . $date[2] . $date[1] . $date[0]);
-
-    if ($_POST['name'] == '' || $_POST['tanggalLahir'] == '' || $_POST['tempatLahir'] == '' || $_POST['alamat'] == '' || $_POST['sesuaiKTP'] == '' || $_POST['pendidikanTerakhir'] == '' || $_POST['pekerjaan'] == '') {
-        echo "<script>alert('Data harus diisi semua');</script>";
-    } elseif (inputForm($_POST) > 0) {
-        echo "<script>alert('berhasil!')</script>";
-    }
+if (isset($_POST['editData'])) {
 }
 
 ?>
@@ -41,7 +30,7 @@ if (isset($_POST['insertData'])) {
     <link href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
     <!-- Core theme CSS (includes Bootstrap)-->
 
-    <link href="css/styles.css" rel="stylesheet" type="text/css" />
+    <link href="../css/styles.css" rel="stylesheet" type="text/css" />
     <style>
         textarea {
             resize: none;
@@ -63,8 +52,12 @@ if (isset($_POST['insertData'])) {
                     <h1 class="text-center mt-2">FORM EDIT</h1>
                     <form action="" method="post">
                         <div class="col-5 ms-3">
+                            <label for="name" class="col-form-label">No. Kependudukan : </label>
+                            <input type="text" name="name" class="form-control" id="name" value="<?= $result['userId']; ?>" disabled>
+                        </div>
+                        <div class="col-5 ms-3">
                             <label for="name" class="col-form-label">Nama : </label>
-                            <input type="text" name="name" class="form-control" id="name" placeholder="Input nama!">
+                            <input type="text" name="name" class="form-control" id="name" value="<?= $result['namaLengkap']; ?>">
                         </div>
                         <div class="row">
                             <div class="col-5 ms-3">
@@ -73,19 +66,25 @@ if (isset($_POST['insertData'])) {
                             </div>
                             <div class="col-5 ms-3">
                                 <label for="tempatLahir" class="col-form-label">Tempat Lahir : </label>
-                                <input type="text" name="tempatLahir" class="form-control" id="tempatLahir" placeholder="Input tempat lahir!">
+                                <input type="text" name="tempatLahir" class="form-control" id="tempatLahir" value="<?= $result['tempatLahir']; ?>">
                             </div>
                         </div>
                         <div class="col-8 ms-3">
                             <label for="alamat" class="col-form-label">Alamat : </label>
-                            <textarea name="alamat" class="form-control" id="alamat" placeholder="Input alamat!" cols="" rows="3"></textarea>
+                            <textarea name="alamat" class="form-control" id="alamat" placeholder="Input alamat!" cols="" rows="3"><?= $result['alamat']; ?></textarea>
                         </div>
                         <div class="col-4 ms-3">
                             <label for="sesuaiKTP" class="col-form-label">Alamat sesuai KTP : </label>
                             <select name="sesuaiKTP" class="form-select" id="sesuaiKTP">
-                                <option selected>...</option>
-                                <option value="1">Ya</option>
-                                <option value="0">Tidak</option>
+                                <option selected><?php
+                                                    if ($result['namaLengkap'] == 1) {
+                                                        echo "<option value='1' selected>Ya</option>";
+                                                        echo "<option value='0'>Tidak</option>";
+                                                    } else {
+                                                        echo "<option value='1'>Ya</option>";
+                                                        echo "<option value='0' selected>Tidak</option>";
+                                                    }
+                                                    ?>
                             </select>
                         </div>
                         <div class="row">
@@ -112,7 +111,7 @@ if (isset($_POST['insertData'])) {
                             </div>
                         </div>
                         <div class="my-3 ms-3">
-                            <button type="submit" class="btn btn-outline-success center col" name="insertData">Submit</button>
+                            <button type="submit" class="btn btn-outline-success center col" name="editData">Submit</button>
                         </div>
                     </form>
                 </div>
