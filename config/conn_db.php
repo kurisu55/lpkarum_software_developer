@@ -58,7 +58,7 @@ function inputForm($data)
 //     return mysqli_affected_rows($connect);
 // }
 
-function hapusSoal($id)
+function deleteData($id)
 {
     global $connect;
 
