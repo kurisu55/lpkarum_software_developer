@@ -21,7 +21,9 @@ if (isset($_POST['insertData'])) {
     }
 }
 
-$resultWholeData = mysqli_query($connect, "SELECT * FROM orang");
+$resultWholeData = mysqli_query($connect, "SELECT * FROM orang
+INNER JOIN domisili ON orang.userId = domisili.userId
+INNER JOIN lainnya ON orang.userId= lainnya.userId");
 ?>
 
 <!DOCTYPE html>
@@ -143,7 +145,7 @@ $resultWholeData = mysqli_query($connect, "SELECT * FROM orang");
                                 <td><?= $row['pekerjaan']; ?></td>
                                 <td>
                                     <a href="dataAksi/edit.php?userId=<?= $row['userId']; ?>" class="badge alert-warning">Edit</a>
-                                    <a href="dataAksi/delete.php?<?= $row['userId']; ?>" onclick="return confirm('Konfirmasi hapus?');" class="badge alert-danger">Delete</a>
+                                    <a href="dataAksi/delete.php?userId=<?= $row['userId']; ?>" onclick="return confirm('Konfirmasi hapus?');" class="badge alert-danger">Delete</a>
                                 </td>
                             </tbody>
                         <?php endwhile; ?>
