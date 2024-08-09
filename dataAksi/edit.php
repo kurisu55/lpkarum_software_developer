@@ -2,12 +2,31 @@
 <?php
 include_once('../config/conn_db.php');
 
-// Get userId
+// Get userId for Clause Condition
 $id = $_GET['userId'];
-$dataSelect = mysqli_query($connect, "SELECT * FROM orang WHERE userId=$id");
+
+// Get Data by userId
+$dataSelect = mysqli_query($connect, "SELECT * FROM orang
+                                      INNER JOIN domisili ON orang.userId = domisili.userId
+                                      INNER JOIN lainnya ON orang.userId= lainnya.userId
+                                      WHERE orang.userId=$id");
 $result = mysqli_fetch_assoc($dataSelect);
 
+// Get data userId as POST
+$_POST['userId'] = $id;
+// Get data tanggalLahir as POST
+$_POST['tanggalLahir'] = $result['tanggalLahir'];
+// Get data tempatLahir as POST
+$_POST['tempatLahir'] = $result['tempatLahir'];
+
+
 if (isset($_POST['editData'])) {
+    if (editForm($_POST) > 0) {
+        echo "<script>alert('Data berhasil diubah!');</script>";
+        header('Location:../crud.php');
+    } else {
+        echo "<script>alert('Data gagal diubah!');</script>";
+    }
 }
 
 ?>
@@ -20,7 +39,7 @@ if (isset($_POST['editData'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="prakerja, landing page, html css javascript, form" />
     <meta name="author" content="Kristovel Adi Sucipto" />
-    <title>Form</title>
+    <title>NP : <?= $_POST['userId']; ?></title>
     <!-- Favicon-->
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
     <!-- Font Awesome icons (free version)-->
@@ -42,7 +61,7 @@ if (isset($_POST['editData'])) {
     <!-- Navigation-->
     <nav class="navbar navbar-expand-lg bg-secondary text-uppercase fixed-top" id="mainNav">
         <div class="container">
-            <a class="navbar-brand" href="index.php">Landing Page</a>
+            <a class="navbar-brand" href="../index.php">Landing Page</a>
         </div>
     </nav>
     <section class="page-section">
@@ -51,62 +70,71 @@ if (isset($_POST['editData'])) {
                 <div class="border border-secondary col">
                     <h1 class="text-center mt-2">FORM EDIT</h1>
                     <form action="" method="post">
-                        <div class="col-5 ms-3">
-                            <label for="name" class="col-form-label">No. Kependudukan : </label>
-                            <input type="text" name="name" class="form-control" id="name" value="<?= $result['userId']; ?>" disabled>
-                        </div>
-                        <div class="col-5 ms-3">
-                            <label for="name" class="col-form-label">Nama : </label>
-                            <input type="text" name="name" class="form-control" id="name" value="<?= $result['namaLengkap']; ?>">
-                        </div>
+                        <input type="text" name="id" id="id" value="<?= $result['Id']; ?>" readonly hidden>
                         <div class="row">
-                            <div class="col-5 ms-3">
-                                <label for="tanggalLahir" class="col-form-label">Tanggal Lahir : </label>
-                                <input type="date" name="tanggalLahir" class="form-control" id="tanggalLahir">
+                            <div class="col-3 ms-3">
+                                <label for="name" class="col-form-label">No. Kependudukan : </label>
+                                <input type="text" name="userId" class="form-control" id="userId" value="<?= $result['userId']; ?>" disabled>
                             </div>
                             <div class="col-5 ms-3">
-                                <label for="tempatLahir" class="col-form-label">Tempat Lahir : </label>
-                                <input type="text" name="tempatLahir" class="form-control" id="tempatLahir" value="<?= $result['tempatLahir']; ?>">
+                                <label for="name" class="col-form-label">Nama : </label>
+                                <input type="text" name="name" class="form-control" id="name" value="<?= $result['namaLengkap']; ?>">
                             </div>
                         </div>
-                        <div class="col-8 ms-3">
-                            <label for="alamat" class="col-form-label">Alamat : </label>
-                            <textarea name="alamat" class="form-control" id="alamat" placeholder="Input alamat!" cols="" rows="3"><?= $result['alamat']; ?></textarea>
-                        </div>
-                        <div class="col-4 ms-3">
-                            <label for="sesuaiKTP" class="col-form-label">Alamat sesuai KTP : </label>
-                            <select name="sesuaiKTP" class="form-select" id="sesuaiKTP">
-                                <option selected><?php
-                                                    if ($result['namaLengkap'] == 1) {
-                                                        echo "<option value='1' selected>Ya</option>";
-                                                        echo "<option value='0'>Tidak</option>";
-                                                    } else {
-                                                        echo "<option value='1'>Ya</option>";
-                                                        echo "<option value='0' selected>Tidak</option>";
-                                                    }
-                                                    ?>
-                            </select>
-                        </div>
                         <div class="row">
-                            <div class="col-5 ms-3">
-                                <label for="pendidikanTerakhir" class="col-form-label">Pendidikan Terakhir : </label>
-                                <select name="pendidikanTerakhir" class="form-select" id="pendidikanTerakhir">
-                                    <option selected>...</option>
-                                    <option value="sd">SD</option>
-                                    <option value="smp">SMP</option>
-                                    <option value="smaSederajat">SMA sederajat</option>
-                                    <option value="perguruanTinggi">Perguruan Tinggi</option>
+                            <div class="col-8 ms-3">
+                                <label for="alamat" class="col-form-label">Alamat : </label>
+                                <textarea name="alamat" class="form-control" id="alamat" placeholder="Input alamat!" cols="" rows="3"><?= $result['alamat']; ?></textarea>
+                            </div>
+                            <div class="col-3 ms-3">
+                                <label for="sesuaiKTP" class="col-form-label">Alamat sesuai KTP : </label>
+                                <select name="sesuaiKTP" class="form-select" id="sesuaiKTP">
+                                    <option value='1' <?php if ($result['sesuaiKTP'] == 1) {
+                                                            echo 'selected';
+                                                        } ?>>Ya</option>
+                                    <option value='0' <?php if ($result['sesuaiKTP'] == 0) {
+                                                            echo 'selected';
+                                                        } ?>>Tidak</option>
                                 </select>
                             </div>
-                            <div class="col-5 ms-3">
+                        </div>
+                        <div class="row">
+                            <div class="col-4 ms-3">
+                                <label for="pendidikanTerakhir" class="col-form-label">Pendidikan Terakhir : </label>
+                                <select name="pendidikanTerakhir" class="form-select" id="pendidikanTerakhir">
+                                    <option value="">...</option>
+                                    <option value="sd" <?php if ($result['pendidikanTerakhir'] == 'sd') {
+                                                            echo 'selected';
+                                                        } ?>>SD</option>
+                                    <option value="smp" <?php if ($result['pendidikanTerakhir'] == 'smp') {
+                                                            echo 'selected';
+                                                        } ?>>SMP</option>
+                                    <option value="smaSederajat" <?php if ($result['pendidikanTerakhir'] == 'smaSederajat') {
+                                                                        echo 'selected';
+                                                                    } ?>>SMA sederajat</option>
+                                    <option value="perguruanTinggi" <?php if ($result['pendidikanTerakhir'] == 'perguruanTinggi') {
+                                                                        echo 'selected';
+                                                                    } ?>>Perguruan Tinggi</option>
+                                </select>
+                            </div>
+                            <div class="col-4 ms-3">
                                 <label for="pekerjaan" class="col-form-label">Pekerjaan : </label>
                                 <select name="pekerjaan" class="form-select" id="pekerjaan">
-                                    <option selected>...</option>
-                                    <option value="tidak">Tidak Bekerja</option>
-                                    <option value="pegawai_swasta">Pegawai Swasta</option>
-                                    <option value="pegawai_negeri">Pegawai Negeri</option>
-                                    <option value="wirausaha">Wirausaha</option>
-                                    <option value="pengusaha">Pengusaha</option>
+                                    <option value="tidak" <?php if ($result['pekerjaan'] == 'tidak') {
+                                                                echo 'selected';
+                                                            } ?>>Tidak Bekerja</option>
+                                    <option value="pegawai_swasta" <?php if ($result['pekerjaan'] == 'pegawai_swasta') {
+                                                                        echo 'selected';
+                                                                    } ?>>Pegawai Swasta</option>
+                                    <option value="pegawai_negeri" <?php if ($result['pekerjaan'] == 'pegawai_negeri') {
+                                                                        echo 'selected';
+                                                                    } ?>>Pegawai Negeri</option>
+                                    <option value="wirausaha" <?php if ($result['pekerjaan'] == 'wirausaha') {
+                                                                    echo 'selected';
+                                                                } ?>>Wirausaha</option>
+                                    <option value="pengusaha" <?php if ($result['pekerjaan'] == 'pengusaha') {
+                                                                    echo 'selected';
+                                                                } ?>>Pengusaha</option>
                                 </select>
                             </div>
                         </div>
