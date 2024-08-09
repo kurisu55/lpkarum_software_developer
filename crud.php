@@ -17,7 +17,9 @@ if (isset($_POST['insertData'])) {
     if ($_POST['name'] == '' || $_POST['tanggalLahir'] == '' || $_POST['tempatLahir'] == '' || $_POST['alamat'] == '' || $_POST['sesuaiKTP'] == '' || $_POST['pendidikanTerakhir'] == '' || $_POST['pekerjaan'] == '') {
         echo "<script>alert('Data harus diisi semua');</script>";
     } elseif (inputForm($_POST) > 0) {
-        echo "<script>alert('berhasil!')</script>";
+        sleep(1);
+        header('Location:crud.php');
+        // echo "<script>alert('berhasil!')</script>";
     }
 }
 
